@@ -1,0 +1,45 @@
+service: ec2-monthly
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: ${env:REGION}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "ec2:DescribeInstances"
+        - "ec2:DescribeInstanceStatus"
+        - "ec2:RebootInstances"
+        - "elasticloadbalancing:DeregisterTargets"
+        - "elasticloadbalancing:RegisterTargets"
+        - "elasticloadbalancing:DescribeTargetHealth"
+      Resource:
+        - "*"
+  environment:
+    REGION: ${env:REGION}
+    TARGETGROUP_ARN: ${env:TARGETGROUP_ARN}
+
+functions:
+  deregister:
+    handler: deregister.lambda_handler
+    timeout: 660
+    events:
+      - schedule:
+          rate: ${env:DEREGISTER_SCHEDULE}
+          enabled: true
+          input:
+            instance_id: ${env:INSTANCE_ID}
+    environment:
+      ACTION_TAG: "DEREGISTER"
+
+  reboot_register:
+    handler: reboot_register.lambda_handler
+    timeout: 660
+    events:
+      - schedule:
+          rate: ${env:REBOOT_REGISTER_SCHEDULE}
+          enabled: true
+          input:
+            instance_id: ${env:INSTANCE_ID}
+    environment:
+      ACTION_TAG: "REBOOT_REGISTER"

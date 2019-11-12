@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  sls:
+    build:
+      context: .
+    image: sls:1.0
+    env_file:
+      - .env
+    volumes:
+      - ./work:/root/work
+      - ~/.aws:/root/.aws
